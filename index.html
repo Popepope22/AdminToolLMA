@@ -54,6 +54,7 @@
       font-family: monospace;
       user-select: text;
       min-height: 50px;
+      cursor: pointer;
     }
     label {
       font-weight: 600;
@@ -91,11 +92,9 @@
     <div class="flex-row">
       <div class="output-block flex-col">
         <div class="output" id="resultExclude99"></div>
-        <button onclick="copyText('resultExclude99')">Copy</button>
       </div>
       <div class="output-block flex-col">
         <div class="output" id="resultOnly08"></div>
-        <button onclick="copyText('resultOnly08')">Copy</button>
       </div>
     </div>
   </div>
@@ -185,6 +184,20 @@
         alert("Copied!");
       });
     }
+
+    // Auto-highlight only Net Calculator outputs
+    document.addEventListener("DOMContentLoaded", () => {
+      ['resultExclude99', 'resultOnly08'].forEach(id => {
+        const box = document.getElementById(id);
+        box.addEventListener('click', () => {
+          const range = document.createRange();
+          range.selectNodeContents(box);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+        });
+      });
+    });
   </script>
 </body>
 </html>
