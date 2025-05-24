@@ -37,7 +37,7 @@
       background-color: var(--primary);
       color: white;
       border: none;
-      margin-bottom: 1rem;
+      margin-top: 0.5rem;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
@@ -49,10 +49,11 @@
       border: 1px solid var(--border-color);
       padding: 1rem;
       white-space: pre-wrap;
-      margin-top: 1rem;
+      margin-top: 0.5rem;
       border-radius: 6px;
       font-family: monospace;
       user-select: text;
+      min-height: 50px;
     }
     label {
       font-weight: 600;
@@ -66,21 +67,37 @@
       margin-bottom: 3rem;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
     }
+    .flex-row {
+      display: flex;
+      gap: 1rem;
+    }
+    .flex-col {
+      flex: 1;
+    }
+    .output-block {
+      display: flex;
+      flex-direction: column;
+    }
   </style>
 </head>
 <body>
   <h1>Model Tools Suite🍅🍅🍅</h1>
+
   <div class="tool-block">
     <h2>Net Sales Calculator</h2>
-    <label for="mode">Calculation Mode:</label>
-    <select id="mode">
-      <option value="exclude99">Exclude .99 Gross</option>
-      <option value="only08">Only .08 Gross</option>
-    </select>
     <label for="input">Paste Transaction Logs:</label>
     <textarea id="input" rows="10" placeholder="Paste your transactions here..."></textarea>
     <button onclick="calculateNet()">Calculate Net</button>
-    <div class="output" id="result"></div>
+    <div class="flex-row">
+      <div class="output-block flex-col">
+        <div class="output" id="resultExclude99"></div>
+        <button onclick="copyText('resultExclude99')">Copy</button>
+      </div>
+      <div class="output-block flex-col">
+        <div class="output" id="resultOnly08"></div>
+        <button onclick="copyText('resultOnly08')">Copy</button>
+      </div>
+    </div>
   </div>
 
   <div class="tool-block">
@@ -90,15 +107,25 @@
     <label for="shiftNames">Paste Shift Target Names:</label>
     <textarea id="shiftNames" placeholder="Ali\nAli Smiles\nAmber\n..."></textarea>
     <button onclick="matchShiftTargets()">Match Revenue</button>
-    <div class="output" id="matchedRevenue"></div>
+    <div class="flex-row">
+      <div class="output-block flex-col">
+        <div class="output" id="valueOnlyOutput"></div>
+        <button onclick="copyText('valueOnlyOutput')">Copy</button>
+      </div>
+      <div class="output-block flex-col">
+        <div class="output" id="matchedRevenue"></div>
+        <button onclick="copyText('matchedRevenue')">Copy</button>
+      </div>
+    </div>
   </div>
 
   <script>
     function calculateNet() {
       const text = document.getElementById("input").value;
-      const mode = document.getElementById("mode").value;
       const lines = text.split(/\r?\n/);
-      let total = 0;
+      let totalExclude99 = 0;
+      let totalOnly08 = 0;
+
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes("$") && i >= 2) {
           const grossMatch = lines[i - 2].match(/\$(\d+\.\d{2})/);
@@ -107,16 +134,18 @@
             const gross = parseFloat(grossMatch[1]);
             const net = parseFloat(netMatch[1]);
             const grossStr = gross.toFixed(2);
-            if (mode === "exclude99" && !grossStr.endsWith(".99")) {
-              total += net;
+            if (!grossStr.endsWith(".99")) {
+              totalExclude99 += net;
             }
-            if (mode === "only08" && grossStr.endsWith(".08")) {
-              total += net;
+            if (grossStr.endsWith(".08")) {
+              totalOnly08 += net;
             }
           }
         }
       }
-      document.getElementById("result").textContent = total.toFixed(2);
+
+      document.getElementById("resultExclude99").textContent = totalExclude99.toFixed(2);
+      document.getElementById("resultOnly08").textContent = totalOnly08.toFixed(2);
     }
 
     function normalize(name) {
@@ -138,13 +167,23 @@
         }
       });
 
+      const valuesOnly = [];
       const output = shiftNames.map(name => {
         const norm = normalize(name);
         const value = map[norm] ?? 0;
+        valuesOnly.push(`$${value.toFixed(2)}`);
         return `${name}\t$${value.toFixed(2)}`;
-      }).join("\n");
+      });
 
-      document.getElementById("matchedRevenue").textContent = output;
+      document.getElementById("valueOnlyOutput").textContent = valuesOnly.join("\n");
+      document.getElementById("matchedRevenue").textContent = output.join("\n");
+    }
+
+    function copyText(elementId) {
+      const text = document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Copied!");
+      });
     }
   </script>
 </body>
