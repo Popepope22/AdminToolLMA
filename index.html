@@ -48,13 +48,24 @@
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       padding: 1rem;
-      white-space: pre-wrap;
       margin-top: 0.5rem;
       border-radius: 6px;
       font-family: monospace;
       user-select: text;
       min-height: 50px;
       cursor: pointer;
+    }
+    input.output {
+      padding: 1rem;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      margin-top: 0.5rem;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
     }
     label {
       font-weight: 600;
@@ -91,10 +102,10 @@
     <button onclick="calculateNet()">Calculate Net</button>
     <div class="flex-row">
       <div class="output-block flex-col">
-        <div class="output" id="resultExclude99"></div>
+        <input readonly id="resultExclude99" class="output" onclick="this.select()" />
       </div>
       <div class="output-block flex-col">
-        <div class="output" id="resultOnly08"></div>
+        <input readonly id="resultOnly08" class="output" onclick="this.select()" />
       </div>
     </div>
   </div>
@@ -143,8 +154,8 @@
         }
       }
 
-      document.getElementById("resultExclude99").textContent = totalExclude99.toFixed(2);
-      document.getElementById("resultOnly08").textContent = totalOnly08.toFixed(2);
+      document.getElementById("resultExclude99").value = totalExclude99.toFixed(2);
+      document.getElementById("resultOnly08").value = totalOnly08.toFixed(2);
     }
 
     function normalize(name) {
@@ -184,20 +195,6 @@
         alert("Copied!");
       });
     }
-
-    // Auto-highlight only Net Calculator outputs
-    document.addEventListener("DOMContentLoaded", () => {
-      ['resultExclude99', 'resultOnly08'].forEach(id => {
-        const box = document.getElementById(id);
-        box.addEventListener('click', () => {
-          const range = document.createRange();
-          range.selectNodeContents(box);
-          const selection = window.getSelection();
-          selection.removeAllRanges();
-          selection.addRange(range);
-        });
-      });
-    });
   </script>
 </body>
 </html>
