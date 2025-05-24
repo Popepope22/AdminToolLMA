@@ -82,9 +82,11 @@
     .flex-row {
       display: flex;
       gap: 1rem;
+      flex-wrap: wrap;
     }
     .flex-col {
       flex: 1;
+      min-width: 250px;
     }
     .output-block {
       display: flex;
@@ -102,10 +104,16 @@
     <button onclick="calculateNet()">Calculate Net</button>
     <div class="flex-row">
       <div class="output-block flex-col">
+        <label>Exclude Gross Ending in .99</label>
         <input readonly id="resultExclude99" class="output" onclick="this.select()" />
       </div>
       <div class="output-block flex-col">
+        <label>Only Gross Ending in .08</label>
         <input readonly id="resultOnly08" class="output" onclick="this.select()" />
+      </div>
+      <div class="output-block flex-col">
+        <label>Gross ≥ $100.99 (ends in .99)</label>
+        <input readonly id="resultHigh99" class="output" onclick="this.select()" />
       </div>
     </div>
   </div>
@@ -135,6 +143,7 @@
       const lines = text.split(/\r?\n/);
       let totalExclude99 = 0;
       let totalOnly08 = 0;
+      let totalHigh99 = 0;
 
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes("$") && i >= 2) {
@@ -144,11 +153,17 @@
             const gross = parseFloat(grossMatch[1]);
             const net = parseFloat(netMatch[1]);
             const grossStr = gross.toFixed(2);
+
             if (!grossStr.endsWith(".99")) {
               totalExclude99 += net;
             }
+
             if (grossStr.endsWith(".08")) {
               totalOnly08 += net;
+            }
+
+            if (grossStr.endsWith(".99") && gross >= 100) {
+              totalHigh99 += net;
             }
           }
         }
@@ -156,6 +171,7 @@
 
       document.getElementById("resultExclude99").value = totalExclude99.toFixed(2);
       document.getElementById("resultOnly08").value = totalOnly08.toFixed(2);
+      document.getElementById("resultHigh99").value = totalHigh99.toFixed(2);
     }
 
     function normalize(name) {
