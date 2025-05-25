@@ -105,15 +105,15 @@
     <div class="flex-row">
       <div class="output-block flex-col">
         <label>Exclude All .99</label>
-        <input readonly id="resultExclude99" class="output" onclick="this.select()" />
+        <input readonly id="resultExcludeAll99" class="output" onclick="this.select()" />
       </div>
       <div class="output-block flex-col">
         <label>Only Gross Ending in .08</label>
         <input readonly id="resultOnly08" class="output" onclick="this.select()" />
       </div>
       <div class="output-block flex-col">
-        <label>Include .99 with 3+ Digits Only</label>
-        <input readonly id="resultHigh99" class="output" onclick="this.select()" />
+        <label>Include All – Exclude .99 with 2 Digits Before</label>
+        <input readonly id="resultExclude99Under100" class="output" onclick="this.select()" />
       </div>
     </div>
   </div>
@@ -122,44 +122,45 @@
     function calculateNet() {
       const text = document.getElementById("input").value;
       const lines = text.split(/\r?\n/);
-      let totalExclude99 = 0;
+      let totalExcludeAll99 = 0;
       let totalOnly08 = 0;
-      let totalHigh99 = 0;
+      let totalExclude99Under100 = 0;
 
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes("$") && i >= 2) {
           const grossMatch = lines[i - 2].match(/\$(\d+\.\d+)/);
           const netMatch = lines[i].match(/\$(\d+\.\d{2})$/);
           if (grossMatch && netMatch) {
-            const gross = parseFloat(grossMatch[1]);
+            const grossStr = grossMatch[1];
+            const gross = parseFloat(grossStr);
             const net = parseFloat(netMatch[1]);
-            const decimalPart = grossMatch[1].split('.')[1] || '';
+            const [wholeStr, decimalStr] = grossStr.split(".");
 
-            const isExactTwoDigit99 = decimalPart === '99';
-            const is08 = decimalPart === '08';
-            const is99WithExtraDigits = decimalPart.startsWith('99') && decimalPart.length > 2;
+            const is99 = decimalStr?.startsWith("99");
+            const isExactly08 = decimalStr === "08";
+            const isTwoDigitBefore99 = decimalStr === "99" && parseInt(wholeStr) < 100;
 
-            // Box 1: Exclude .99 (exact two-digit only)
-            if (!isExactTwoDigit99) {
-              totalExclude99 += net;
+            // Box 1: Exclude ALL .99 (any digit before)
+            if (!(decimalStr?.startsWith("99"))) {
+              totalExcludeAll99 += net;
             }
 
-            // Box 2: Include only .08
-            if (is08) {
+            // Box 2: Only .08
+            if (isExactly08) {
               totalOnly08 += net;
             }
 
-            // Box 3: Include .99 with 3+ digits
-            if (is99WithExtraDigits) {
-              totalHigh99 += net;
+            // Box 3: Include all except .99 where whole number < 100
+            if (!isTwoDigitBefore99) {
+              totalExclude99Under100 += net;
             }
           }
         }
       }
 
-      document.getElementById("resultExclude99").value = totalExclude99.toFixed(2);
+      document.getElementById("resultExcludeAll99").value = totalExcludeAll99.toFixed(2);
       document.getElementById("resultOnly08").value = totalOnly08.toFixed(2);
-      document.getElementById("resultHigh99").value = totalHigh99.toFixed(2);
+      document.getElementById("resultExclude99Under100").value = totalExclude99Under100.toFixed(2);
     }
   </script>
 </body>
