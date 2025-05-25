@@ -104,7 +104,7 @@
     <button onclick="calculateNet()">Calculate Net</button>
     <div class="flex-row">
       <div class="output-block flex-col">
-        <label>Exclude Gross Below 100 Ending in .99</label>
+        <label>Exclude .99 (2 digits only)</label>
         <input readonly id="resultExclude99" class="output" onclick="this.select()" />
       </div>
       <div class="output-block flex-col">
@@ -112,27 +112,8 @@
         <input readonly id="resultOnly08" class="output" onclick="this.select()" />
       </div>
       <div class="output-block flex-col">
-        <label>Gross ≥ $100.99 (ends in .99)</label>
+        <label>Include .99 with 3+ digits only</label>
         <input readonly id="resultHigh99" class="output" onclick="this.select()" />
-      </div>
-    </div>
-  </div>
-
-  <div class="tool-block">
-    <h2>Shift Target Matcher</h2>
-    <label for="revenueBlock">Paste Revenue Block:</label>
-    <textarea id="revenueBlock" placeholder="Ali @ali   $ 1,891.80\nAli Smiles   $ 203.16\n..."></textarea>
-    <label for="shiftNames">Paste Shift Target Names:</label>
-    <textarea id="shiftNames" placeholder="Ali\nAli Smiles\nAmber\n..."></textarea>
-    <button onclick="matchShiftTargets()">Match Revenue</button>
-    <div class="flex-row">
-      <div class="output-block flex-col">
-        <div class="output" id="valueOnlyOutput"></div>
-        <button onclick="copyText('valueOnlyOutput')">Copy</button>
-      </div>
-      <div class="output-block flex-col">
-        <div class="output" id="matchedRevenue"></div>
-        <button onclick="copyText('matchedRevenue')">Copy</button>
       </div>
     </div>
   </div>
@@ -152,21 +133,24 @@
           if (grossMatch && netMatch) {
             const gross = parseFloat(grossMatch[1]);
             const net = parseFloat(netMatch[1]);
-            const [whole, decimal = "00"] = gross.toString().split(".");
+            const decimalPart = grossMatch[1].split('.')[1] || '';
 
-            const isTwoDigit99 = decimal.length === 2 && decimal === "99";
-            const isLow99 = isTwoDigit99 && gross < 100;
-            const isHigh99 = isTwoDigit99 && gross >= 100;
+            const isExactTwoDigit99 = decimalPart === '99';
+            const is08 = decimalPart === '08';
+            const is99WithMoreDigits = decimalPart.startsWith('99') && decimalPart.length > 2;
 
-            if (!isLow99) {
+            // Box 1: Include all except exact .99
+            if (!isExactTwoDigit99) {
               totalExclude99 += net;
             }
 
-            if (decimal === "08") {
+            // Box 2: Only if ends in .08
+            if (is08) {
               totalOnly08 += net;
             }
 
-            if (isHigh99) {
+            // Box 3: Only if ends in .99X (not exactly .99)
+            if (is99WithMoreDigits) {
               totalHigh99 += net;
             }
           }
@@ -176,44 +160,6 @@
       document.getElementById("resultExclude99").value = totalExclude99.toFixed(2);
       document.getElementById("resultOnly08").value = totalOnly08.toFixed(2);
       document.getElementById("resultHigh99").value = totalHigh99.toFixed(2);
-    }
-
-    function normalize(name) {
-      return name.toLowerCase().replace(/@.*|[^a-z0-9]/gi, '').trim();
-    }
-
-    function matchShiftTargets() {
-      const revenueBlock = document.getElementById("revenueBlock").value;
-      const shiftNames = document.getElementById("shiftNames").value.split(/\n+/).map(x => x.trim()).filter(Boolean);
-      const lines = revenueBlock.split(/\n+/);
-      const map = {};
-
-      lines.forEach(line => {
-        const match = line.match(/^(.*?)\s+\$\s*([0-9,.]+)/);
-        if (match) {
-          const name = normalize(match[1]);
-          const value = parseFloat(match[2].replace(/[^0-9.]/g, ''));
-          map[name] = value;
-        }
-      });
-
-      const valuesOnly = [];
-      const output = shiftNames.map(name => {
-        const norm = normalize(name);
-        const value = map[norm] ?? 0;
-        valuesOnly.push(`$${value.toFixed(2)}`);
-        return `${name}\t$${value.toFixed(2)}`;
-      });
-
-      document.getElementById("valueOnlyOutput").textContent = valuesOnly.join("\n");
-      document.getElementById("matchedRevenue").textContent = output.join("\n");
-    }
-
-    function copyText(elementId) {
-      const text = document.getElementById(elementId).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Copied!");
-      });
     }
   </script>
 </body>
