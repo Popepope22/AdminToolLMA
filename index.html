@@ -104,7 +104,7 @@
     <button onclick="calculateNet()">Calculate Net</button>
     <div class="flex-row">
       <div class="output-block flex-col">
-        <label>Exclude .99 (2 digits only)</label>
+        <label>Exclude All .99</label>
         <input readonly id="resultExclude99" class="output" onclick="this.select()" />
       </div>
       <div class="output-block flex-col">
@@ -112,7 +112,7 @@
         <input readonly id="resultOnly08" class="output" onclick="this.select()" />
       </div>
       <div class="output-block flex-col">
-        <label>Include .99 with 3+ digits only</label>
+        <label>Include .99 with 3+ Digits Only</label>
         <input readonly id="resultHigh99" class="output" onclick="this.select()" />
       </div>
     </div>
@@ -137,20 +137,20 @@
 
             const isExactTwoDigit99 = decimalPart === '99';
             const is08 = decimalPart === '08';
-            const is99WithMoreDigits = decimalPart.startsWith('99') && decimalPart.length > 2;
+            const is99WithExtraDigits = decimalPart.startsWith('99') && decimalPart.length > 2;
 
-            // Box 1: Include all except exact .99
+            // Box 1: Exclude .99 (exact two-digit only)
             if (!isExactTwoDigit99) {
               totalExclude99 += net;
             }
 
-            // Box 2: Only if ends in .08
+            // Box 2: Include only .08
             if (is08) {
               totalOnly08 += net;
             }
 
-            // Box 3: Only if ends in .99X (not exactly .99)
-            if (is99WithMoreDigits) {
+            // Box 3: Include .99 with 3+ digits
+            if (is99WithExtraDigits) {
               totalHigh99 += net;
             }
           }
