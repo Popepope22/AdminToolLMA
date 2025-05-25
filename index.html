@@ -104,7 +104,7 @@
     <button onclick="calculateNet()">Calculate Net</button>
     <div class="flex-row">
       <div class="output-block flex-col">
-        <label>Exclude Gross Ending in .99</label>
+        <label>Exclude Gross Below 100 Ending in .99</label>
         <input readonly id="resultExclude99" class="output" onclick="this.select()" />
       </div>
       <div class="output-block flex-col">
@@ -147,22 +147,26 @@
 
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes("$") && i >= 2) {
-          const grossMatch = lines[i - 2].match(/\$(\d+\.\d{2})/);
+          const grossMatch = lines[i - 2].match(/\$(\d+\.\d+)/);
           const netMatch = lines[i].match(/\$(\d+\.\d{2})$/);
           if (grossMatch && netMatch) {
             const gross = parseFloat(grossMatch[1]);
             const net = parseFloat(netMatch[1]);
-            const grossStr = gross.toFixed(2);
+            const [whole, decimal = "00"] = gross.toString().split(".");
 
-            if (!grossStr.endsWith(".99")) {
+            const isTwoDigit99 = decimal.length === 2 && decimal === "99";
+            const isLow99 = isTwoDigit99 && gross < 100;
+            const isHigh99 = isTwoDigit99 && gross >= 100;
+
+            if (!isLow99) {
               totalExclude99 += net;
             }
 
-            if (grossStr.endsWith(".08")) {
+            if (decimal === "08") {
               totalOnly08 += net;
             }
 
-            if (grossStr.endsWith(".99") && gross >= 100) {
+            if (isHigh99) {
               totalHigh99 += net;
             }
           }
