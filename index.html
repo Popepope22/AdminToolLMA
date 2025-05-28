@@ -1,42 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Model Shift Target Matcher</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Model Tools Suite</title>
   <style>
+    :root {
+      --primary: #4a90e2;
+      --secondary: #f4f7fb;
+      --text-color: #1e1e1e;
+      --card-bg: #ffffff;
+      --border-color: #d1d5db;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius: 12px;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--secondary);
+      color: var(--text-color);
       margin: 0;
       padding: 2rem;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
-      color: #333;
+      color: var(--primary);
     }
-    textarea, button {
+    textarea, select, button {
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
+      padding: 0.75rem;
       font-size: 1rem;
+      margin-top: 1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      box-sizing: border-box;
     }
     textarea {
-      height: 120px;
+      min-height: 120px;
     }
-    #output, #valueOnly {
-      background: #fff;
-      padding: 10px;
-      border: 1px solid #ccc;
-      white-space: pre-wrap;
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      margin-top: 1rem;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #357abd;
     }
     .tool-block {
-      background: #fff;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       padding: 2rem;
-      margin-top: 3rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 3rem;
     }
     .flex-row {
       display: flex;
@@ -53,21 +71,31 @@
     }
     input.output {
       padding: 1rem;
-      border-radius: 6px;
+      border-radius: var(--radius);
       font-family: monospace;
       font-size: 1rem;
-      background: #fff;
-      border: 1px solid #ccc;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       margin-top: 0.5rem;
       cursor: pointer;
       width: 100%;
       box-sizing: border-box;
     }
+    #output, #valueOnly {
+      background: var(--card-bg);
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      white-space: pre-wrap;
+      cursor: pointer;
+      margin-top: 1rem;
+      box-shadow: var(--shadow);
+    }
     details {
       margin-top: 2rem;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       padding: 1rem;
     }
     summary {
@@ -78,7 +106,7 @@
   </style>
 </head>
 <body>
-  <h1>Model Shift Target Matcher</h1>
+  <h1>Model Tools Suite ⚙️</h1>
 
   <div class="tool-block">
     <h2>Net Sales Calculator</h2>
@@ -102,7 +130,7 @@
   </div>
 
   <details>
-    <summary>Show Shift Target Scheduler</summary>
+    <summary>📋 Show Shift Target Scheduler</summary>
     <label for="modelBlock">Paste Model Block (names only):</label>
     <textarea id="modelBlock" placeholder="e.g.,\nAli\nAmber\nAshton"></textarea>
 
@@ -126,7 +154,6 @@
         if (dollarIndex !== -1) {
           const namePart = line.substring(0, dollarIndex).replace(/[-@].*$/, '').trim().toLowerCase();
           const valuePart = line.substring(dollarIndex).trim();
-
           const altName = namePart.replace(/\blily\b/, 'lilly');
           result[namePart] = valuePart;
           result[altName] = valuePart;
@@ -178,18 +205,15 @@
             const gross = parseFloat(grossStr);
             const net = parseFloat(netMatch[1]);
             const [wholeStr, decimalStr] = grossStr.split(".");
-
             const is99 = decimalStr?.startsWith("99");
             const isExactly08 = decimalStr === "08";
             const isTwoDigitBefore99 = decimalStr === "99" && parseInt(wholeStr) < 100;
-
             if (!is99) totalExcludeAll99 += net;
             if (isExactly08) totalOnly08 += net;
             if (!isTwoDigitBefore99) totalExclude99Under100 += net;
           }
         }
       }
-
       document.getElementById("resultExcludeAll99").value = totalExcludeAll99.toFixed(2);
       document.getElementById("resultOnly08").value = totalOnly08.toFixed(2);
       document.getElementById("resultExclude99Under100").value = totalExclude99Under100.toFixed(2);
