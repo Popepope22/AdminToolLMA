@@ -63,24 +63,22 @@
       width: 100%;
       box-sizing: border-box;
     }
+    details {
+      margin-top: 2rem;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      padding: 1rem;
+    }
+    summary {
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h1>Model Shift Target Matcher</h1>
-
-  <label for="modelBlock">Paste Model Block (names only):</label>
-  <textarea id="modelBlock" placeholder="e.g.,\nAli\nAmber\nAshton"></textarea>
-
-  <label for="valueList">Paste Value List (any format with $Value):</label>
-  <textarea id="valueList" placeholder="e.g.,\nAli @ali $1,200.00\nAmber - $1,000.50\nAshton - $950.75"></textarea>
-
-  <button onclick="matchTargets()">Match Targets</button>
-
-  <h2>Matched Output</h2>
-  <div id="output" onclick="selectAllText('output')"></div>
-
-  <h2>Value Only List</h2>
-  <div id="valueOnly" onclick="selectAllText('valueOnly')"></div>
 
   <div class="tool-block">
     <h2>Net Sales Calculator</h2>
@@ -102,6 +100,23 @@
       </div>
     </div>
   </div>
+
+  <details>
+    <summary>Show Shift Target Scheduler</summary>
+    <label for="modelBlock">Paste Model Block (names only):</label>
+    <textarea id="modelBlock" placeholder="e.g.,\nAli\nAmber\nAshton"></textarea>
+
+    <label for="valueList">Paste Value List (any format with $Value):</label>
+    <textarea id="valueList" placeholder="e.g.,\nAli @ali $1,200.00\nAmber - $1,000.50\nAshton - $950.75"></textarea>
+
+    <button onclick="matchTargets()">Match Targets</button>
+
+    <h2>Matched Output</h2>
+    <div id="output" onclick="selectAllText('output')"></div>
+
+    <h2>Value Only List</h2>
+    <div id="valueOnly" onclick="selectAllText('valueOnly')"></div>
+  </details>
 
   <script>
     function extractNameValuePairs(lines) {
