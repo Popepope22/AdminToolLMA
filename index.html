@@ -1,83 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Model Tools Suite</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Shift Target Matcher</title>
   <style>
-    :root {
-      --primary: #4a90e2;
-      --secondary: #f4f7fb;
-      --text-color: #333;
-      --card-bg: #ffffff;
-      --border-color: #e1e5ea;
-    }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--secondary);
-      color: var(--text-color);
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
       margin: 0;
       padding: 2rem;
-      user-select: none;
     }
-    h1, h2 {
+    h1 {
       text-align: center;
-      color: var(--primary);
+      color: #333;
     }
-    textarea, select, button {
+    textarea, button {
       width: 100%;
-      padding: 0.75rem;
+      padding: 10px;
+      margin: 10px 0;
       font-size: 1rem;
-      margin-top: 1rem;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      box-sizing: border-box;
     }
-    button {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      margin-top: 0.5rem;
+    textarea {
+      height: 120px;
+    }
+    #output, #valueOnly {
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: pre-wrap;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #357abd;
-    }
-    .output {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      padding: 1rem;
-      margin-top: 0.5rem;
-      border-radius: 6px;
-      font-family: monospace;
-      user-select: text;
-      min-height: 50px;
-      cursor: pointer;
-    }
-    input.output {
-      padding: 1rem;
-      border-radius: 6px;
-      font-family: monospace;
-      font-size: 1rem;
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      margin-top: 0.5rem;
-      cursor: pointer;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    label {
-      font-weight: 600;
-      color: #444;
     }
     .tool-block {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
+      background: #fff;
       padding: 2rem;
+      margin-top: 3rem;
       border-radius: 10px;
-      margin-bottom: 3rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
     }
     .flex-row {
       display: flex;
@@ -92,10 +51,36 @@
       display: flex;
       flex-direction: column;
     }
+    input.output {
+      padding: 1rem;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 1rem;
+      background: #fff;
+      border: 1px solid #ccc;
+      margin-top: 0.5rem;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
-  <h1>Model Tools Suite🍅🍅🍅</h1>
+  <h1>Model Shift Target Matcher</h1>
+
+  <label for="modelBlock">Paste Model Block (names only):</label>
+  <textarea id="modelBlock" placeholder="e.g.,\nAli\nAmber\nAshton"></textarea>
+
+  <label for="valueList">Paste Value List (any format with $Value):</label>
+  <textarea id="valueList" placeholder="e.g.,\nAli @ali $1,200.00\nAmber - $1,000.50\nAshton - $950.75"></textarea>
+
+  <button onclick="matchTargets()">Match Targets</button>
+
+  <h2>Matched Output</h2>
+  <div id="output" onclick="selectAllText('output')"></div>
+
+  <h2>Value Only List</h2>
+  <div id="valueOnly" onclick="selectAllText('valueOnly')"></div>
 
   <div class="tool-block">
     <h2>Net Sales Calculator</h2>
@@ -119,6 +104,49 @@
   </div>
 
   <script>
+    function extractNameValuePairs(lines) {
+      const result = {};
+      lines.forEach(line => {
+        const dollarIndex = line.indexOf('$');
+        if (dollarIndex !== -1) {
+          const namePart = line.substring(0, dollarIndex).replace(/[-@].*$/, '').trim().toLowerCase();
+          const valuePart = line.substring(dollarIndex).trim();
+
+          const altName = namePart.replace(/\blily\b/, 'lilly');
+          result[namePart] = valuePart;
+          result[altName] = valuePart;
+        }
+      });
+      return result;
+    }
+
+    function matchTargets() {
+      const modelBlock = document.getElementById("modelBlock").value.split(/\n+/).map(m => m.trim().toLowerCase());
+      const valueLines = document.getElementById("valueList").value.split(/\n+/);
+      const valueMap = extractNameValuePairs(valueLines);
+
+      const matchedLines = [];
+      const valueOnlyLines = [];
+
+      modelBlock.forEach(name => {
+        const matchedValue = valueMap[name] || "Not Found";
+        matchedLines.push(`${name} - ${matchedValue}`);
+        valueOnlyLines.push(matchedValue);
+      });
+
+      document.getElementById("output").textContent = matchedLines.join("\n");
+      document.getElementById("valueOnly").textContent = valueOnlyLines.join("\n");
+    }
+
+    function selectAllText(id) {
+      const el = document.getElementById(id);
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
     function calculateNet() {
       const text = document.getElementById("input").value;
       const lines = text.split(/\r?\n/);
@@ -140,20 +168,9 @@
             const isExactly08 = decimalStr === "08";
             const isTwoDigitBefore99 = decimalStr === "99" && parseInt(wholeStr) < 100;
 
-            // Box 1: Exclude ALL .99 (any digit before)
-            if (!(decimalStr?.startsWith("99"))) {
-              totalExcludeAll99 += net;
-            }
-
-            // Box 2: Only .08
-            if (isExactly08) {
-              totalOnly08 += net;
-            }
-
-            // Box 3: Include all except .99 where whole number < 100
-            if (!isTwoDigitBefore99) {
-              totalExclude99Under100 += net;
-            }
+            if (!is99) totalExcludeAll99 += net;
+            if (isExactly08) totalOnly08 += net;
+            if (!isTwoDigitBefore99) totalExclude99Under100 += net;
           }
         }
       }
