@@ -14,14 +14,10 @@
       --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       --radius: 12px;
     }
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -32,33 +28,20 @@
       flex-direction: column;
       gap: 2rem;
     }
-    h1, h2 {
-      text-align: center;
-      color: var(--primary);
-    }
+    h1, h2 { text-align: center; color: var(--primary); }
     textarea, select, button {
-      width: 100%;
-      padding: 0.75rem;
-      font-size: 1rem;
-      margin-top: 1rem;
-      border-radius: var(--radius);
+      width: 100%; padding: 0.75rem; font-size: 1rem;
+      margin-top: 1rem; border-radius: var(--radius);
       border: 1px solid var(--border-color);
     }
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
+    textarea { min-height: 120px; resize: vertical; }
     button {
       background-color: var(--primary);
-      color: white;
-      border: none;
-      margin-top: 1rem;
-      cursor: pointer;
+      color: white; border: none;
+      margin-top: 1rem; cursor: pointer;
       transition: background-color 0.3s ease;
     }
-    button:hover {
-      background-color: #357abd;
-    }
+    button:hover { background-color: #357abd; }
     .tool-block {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -68,30 +51,19 @@
       width: 100%;
     }
     .flex-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
+      display: flex; flex-wrap: wrap; gap: 1rem;
     }
-    .flex-col {
-      flex: 1;
-      min-width: 250px;
-    }
-    .output-block {
-      display: flex;
-      flex-direction: column;
-    }
+    .flex-col { flex: 1; min-width: 250px; }
+    .output-block { display: flex; flex-direction: column; }
     input.output {
-      padding: 1rem;
-      border-radius: var(--radius);
-      font-family: monospace;
-      font-size: 1rem;
+      padding: 1rem; border-radius: var(--radius);
+      font-family: monospace; font-size: 1rem;
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       margin-top: 0.5rem;
-      cursor: pointer;
-      width: 100%;
+      cursor: pointer; width: 100%;
     }
-    #output, #valueOnly {
+    #output, #valueOnly, #combinedResults {
       background: var(--card-bg);
       padding: 1rem;
       border: 1px solid var(--border-color);
@@ -117,6 +89,7 @@
 <body>
   <h1>Model Tools Suite ⚙️</h1>
 
+  <!-- Net Sales Calculator -->
   <div class="tool-block">
     <h2>Net Sales Calculator</h2>
     <label for="input">Paste Transaction Logs:</label>
@@ -138,6 +111,7 @@
     </div>
   </div>
 
+  <!-- Shift Target Scheduler -->
   <details>
     <summary>📋 Show Shift Target Scheduler</summary>
     <label for="modelBlock">Paste Model Block (names only):</label>
@@ -155,40 +129,17 @@
     <div id="valueOnly" onclick="selectAllText('valueOnly')"></div>
   </details>
 
+  <!-- Tips + Messages Totalizer -->
+  <div class="tool-block">
+    <h2>Tips + Messages Totalizer</h2>
+    <label for="rawData">Paste Tips + Messages Raw Data:</label>
+    <textarea id="rawData" placeholder="Name, possible A/B, Tip line, Message line…"></textarea>
+    <button onclick="processData()">Process Totals</button>
+    <div id="combinedResults" onclick="selectAllText('combinedResults')"></div>
+  </div>
+
   <script>
-    function extractNameValuePairs(lines) {
-      const result = {};
-      lines.forEach(line => {
-        const dollarIndex = line.indexOf('$');
-        if (dollarIndex !== -1) {
-          const namePart = line.substring(0, dollarIndex).replace(/[-@].*$/, '').trim().toLowerCase();
-          const valuePart = line.substring(dollarIndex).trim();
-          const altName = namePart.replace(/\blily\b/, 'lilly');
-          result[namePart] = valuePart;
-          result[altName] = valuePart;
-        }
-      });
-      return result;
-    }
-
-    function matchTargets() {
-      const modelBlock = document.getElementById("modelBlock").value.split(/\n+/).map(m => m.trim().toLowerCase());
-      const valueLines = document.getElementById("valueList").value.split(/\n+/);
-      const valueMap = extractNameValuePairs(valueLines);
-
-      const matchedLines = [];
-      const valueOnlyLines = [];
-
-      modelBlock.forEach(name => {
-        const matchedValue = valueMap[name] || "Not Found";
-        matchedLines.push(`${name} - ${matchedValue}`);
-        valueOnlyLines.push(matchedValue);
-      });
-
-      document.getElementById("output").textContent = matchedLines.join("\n");
-      document.getElementById("valueOnly").textContent = valueOnlyLines.join("\n");
-    }
-
+    // ---- Utility to select any output div/input text ----
     function selectAllText(id) {
       const el = document.getElementById(id);
       const range = document.createRange();
@@ -198,34 +149,95 @@
       sel.addRange(range);
     }
 
+    // ---- Net Sales Calculator Logic ----
     function calculateNet() {
       const text = document.getElementById("input").value;
       const lines = text.split(/\r?\n/);
-      let totalExcludeAll99 = 0;
-      let totalOnly08 = 0;
-      let totalExclude99Under100 = 0;
+      let totalExcludeAll99 = 0, totalOnly08 = 0, totalExclude99Under100 = 0;
 
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes("$") && i >= 2) {
           const grossMatch = lines[i - 2].match(/\$(\d+\.\d+)/);
           const netMatch = lines[i].match(/\$(\d+\.\d{2})$/);
           if (grossMatch && netMatch) {
-            const grossStr = grossMatch[1];
-            const gross = parseFloat(grossStr);
-            const net = parseFloat(netMatch[1]);
-            const [wholeStr, decimalStr] = grossStr.split(".");
-            const is99 = decimalStr?.startsWith("99");
-            const isExactly08 = decimalStr === "08";
-            const isTwoDigitBefore99 = decimalStr === "99" && parseInt(wholeStr) < 100;
+            const grossStr = grossMatch[1], net = parseFloat(netMatch[1]);
+            const [whole, decimal] = grossStr.split(".");
+            const is99 = decimal.startsWith("99");
+            const is08 = decimal === "08";
+            const is99Under100 = decimal === "99" && parseInt(whole) < 100;
             if (!is99) totalExcludeAll99 += net;
-            if (isExactly08) totalOnly08 += net;
-            if (!isTwoDigitBefore99) totalExclude99Under100 += net;
+            if (is08) totalOnly08 += net;
+            if (!is99Under100) totalExclude99Under100 += net;
           }
         }
       }
       document.getElementById("resultExcludeAll99").value = totalExcludeAll99.toFixed(2);
-      document.getElementById("resultOnly08").value = totalOnly08.toFixed(2);
+      document.getElementById("resultOnly08").value      = totalOnly08.toFixed(2);
       document.getElementById("resultExclude99Under100").value = totalExclude99Under100.toFixed(2);
+    }
+
+    // ---- Shift Target Scheduler Logic ----
+    function extractNameValuePairs(lines) {
+      const result = {};
+      lines.forEach(line => {
+        const idx = line.indexOf('$');
+        if (idx !== -1) {
+          const namePart = line.substring(0, idx).replace(/[-@].*$/, '').trim().toLowerCase();
+          const valuePart = line.substring(idx).trim();
+          result[namePart] = valuePart;
+        }
+      });
+      return result;
+    }
+    function matchTargets() {
+      const modelBlock = document.getElementById("modelBlock")
+                            .value.split(/\n+/).map(m => m.trim().toLowerCase());
+      const valueLines = document.getElementById("valueList").value.split(/\n+/);
+      const valueMap   = extractNameValuePairs(valueLines);
+
+      const matched = [], valuesOnly = [];
+      modelBlock.forEach(name => {
+        const val = valueMap[name] || "Not Found";
+        matched.push(`${name} - ${val}`);
+        valuesOnly.push(val);
+      });
+      document.getElementById("output").textContent    = matched.join("\n");
+      document.getElementById("valueOnly").textContent = valuesOnly.join("\n");
+    }
+
+    // ---- Tips + Messages Totalizer Logic ----
+    function processData() {
+      const raw = document.getElementById('rawData').value.trim();
+      const lines = raw.split('\n')
+                       .map(l => l.trim())
+                       .filter(l => l);
+
+      const results = {};
+      let i = 0;
+      while (i < lines.length) {
+        const name = lines[i];
+        let tipLine = lines[i+1], msgLine = lines[i+2];
+
+        // skip A/B if present
+        if (tipLine === 'A' || tipLine === 'B') {
+          tipLine = lines[i+2];
+          msgLine = lines[i+3];
+          i += 4;
+        } else {
+          i += 3;
+        }
+
+        const tip = parseFloat(tipLine.replace(/[^\d.]/g, '')) || 0;
+        const msg = parseFloat(msgLine.replace(/[^\d.]/g, '')) || 0;
+        results[name] = (results[name] || 0) + tip + msg;
+      }
+
+      const output = Object.entries(results)
+        .sort((a,b) => a[0].localeCompare(b[0]))
+        .map(([n,v]) => `${n} - $${v.toFixed(2)}`)
+        .join('\n');
+
+      document.getElementById('combinedResults').textContent = output;
     }
   </script>
 </body>
