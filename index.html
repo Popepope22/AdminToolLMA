@@ -63,7 +63,7 @@
       margin-top: 0.5rem;
       cursor: pointer; width: 100%;
     }
-    #output, #valueOnly, #combinedResults {
+    #output, #valueOnly, #combinedResults, #timeFilteredResult {
       background: var(--card-bg);
       padding: 1rem;
       border: 1px solid var(--border-color);
@@ -138,8 +138,36 @@
     <div id="combinedResults" onclick="selectAllText('combinedResults')"></div>
   </div>
 
+  <!-- Time-Filtered Net Calculator -->
+  <div class="tool-block">
+    <h2>Net Calculator (Filtered by Time)</h2>
+
+    <div>
+      <strong>Start Time:</strong>
+      <select id="startMonth"></select>
+      <select id="startDay"></select>
+      <select id="startYear"></select>
+      <select id="startHour"></select> :
+      <select id="startMinute"></select>
+      <select id="startAMPM"><option>AM</option><option>PM</option></select>
+    </div>
+
+    <div>
+      <strong>End Time:</strong>
+      <select id="endMonth"></select>
+      <select id="endDay"></select>
+      <select id="endYear"></select>
+      <select id="endHour"></select> :
+      <select id="endMinute"></select>
+      <select id="endAMPM"><option>AM</option><option>PM</option></select>
+    </div>
+
+    <textarea id="logInput" placeholder="Paste log here..."></textarea>
+    <button onclick="calculateNetTimeFiltered()">Calculate Net</button>
+    <div id="timeFilteredResult">Total Net: $0.00</div>
+  </div>
+
   <script>
-    // ---- Utility to select any output div/input text ----
     function selectAllText(id) {
       const el = document.getElementById(id);
       const range = document.createRange();
@@ -149,7 +177,6 @@
       sel.addRange(range);
     }
 
-    // ---- Net Sales Calculator Logic ----
     function calculateNet() {
       const text = document.getElementById("input").value;
       const lines = text.split(/\r?\n/);
@@ -176,7 +203,6 @@
       document.getElementById("resultExclude99Under100").value = totalExclude99Under100.toFixed(2);
     }
 
-    // ---- Shift Target Scheduler Logic ----
     function extractNameValuePairs(lines) {
       const result = {};
       lines.forEach(line => {
@@ -189,6 +215,7 @@
       });
       return result;
     }
+
     function matchTargets() {
       const modelBlock = document.getElementById("modelBlock")
                             .value.split(/\n+/).map(m => m.trim().toLowerCase());
@@ -205,7 +232,6 @@
       document.getElementById("valueOnly").textContent = valuesOnly.join("\n");
     }
 
-    // ---- Tips + Messages Totalizer Logic ----
     function processData() {
       const raw = document.getElementById('rawData').value.trim();
       const lines = raw.split('\n')
@@ -218,7 +244,6 @@
         const name = lines[i];
         let tipLine = lines[i+1], msgLine = lines[i+2];
 
-        // skip A/B if present
         if (tipLine === 'A' || tipLine === 'B') {
           tipLine = lines[i+2];
           msgLine = lines[i+3];
@@ -238,6 +263,85 @@
         .join('\n');
 
       document.getElementById('combinedResults').textContent = output;
+    }
+
+    // Time-Filtered Net Calculator Logic
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    function populateSelect(id, start, end, pad) {
+      const sel = document.getElementById(id);
+      for (let i = start; i <= end; i++) {
+        let val = pad ? String(i).padStart(2, '0') : i;
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.text = val;
+        sel.appendChild(opt);
+      }
+    }
+
+    function populateDropdowns() {
+      months.forEach((m, i) => {
+        ['startMonth', 'endMonth'].forEach(id => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.text = m;
+          document.getElementById(id).appendChild(opt);
+        });
+      });
+
+      populateSelect("startDay", 1, 31, true);
+      populateSelect("endDay", 1, 31, true);
+      populateSelect("startYear", 2020, 2030);
+      populateSelect("endYear", 2020, 2030);
+      populateSelect("startHour", 1, 12, true);
+      populateSelect("endHour", 1, 12, true);
+      populateSelect("startMinute", 0, 59, true);
+      populateSelect("endMinute", 0, 59, true);
+    }
+
+    populateDropdowns();
+
+    function getDate(prefix) {
+      const month = parseInt(document.getElementById(prefix + "Month").value);
+      const day = parseInt(document.getElementById(prefix + "Day").value);
+      const year = parseInt(document.getElementById(prefix + "Year").value);
+      let hour = parseInt(document.getElementById(prefix + "Hour").value);
+      const minute = parseInt(document.getElementById(prefix + "Minute").value);
+      const ampm = document.getElementById(prefix + "AMPM").value;
+
+      if (ampm === "PM" && hour !== 12) hour += 12;
+      if (ampm === "AM" && hour === 12) hour = 0;
+
+      return new Date(year, month, day, hour, minute);
+    }
+
+    function parseDate(line) {
+      const match = line.match(/([A-Za-z]{3,}) (\d{1,2}),\s*(\d{4}),\s*(\d{1,2}):(\d{2})\s*(am|pm)/i);
+      if (!match) return null;
+      const [ , monStr, day, year, hourRaw, minute, ampm ] = match;
+      const month = months.findIndex(m => m.toLowerCase().startsWith(monStr.toLowerCase()));
+      let hour = parseInt(hourRaw);
+      if (ampm.toLowerCase() === 'pm' && hour !== 12) hour += 12;
+      if (ampm.toLowerCase() === 'am' && hour === 12) hour = 0;
+      return new Date(parseInt(year), month, parseInt(day), hour, parseInt(minute));
+    }
+
+    function calculateNetTimeFiltered() {
+      const log = document.getElementById("logInput").value.trim().split("\n");
+      const start = getDate("start");
+      const end = getDate("end");
+      let total = 0;
+
+      for (let i = 0; i < log.length; i++) {
+        const date = parseDate(log[i]);
+        if (date && date >= start && date <= end) {
+          const netLine = log[i + 3];
+          const match = netLine?.match(/\$([\d.]+)/);
+          if (match) total += parseFloat(match[1]);
+        }
+      }
+
+      document.getElementById("timeFilteredResult").innerText = `Total Net: $${total.toFixed(2)}`;
     }
   </script>
 </body>
