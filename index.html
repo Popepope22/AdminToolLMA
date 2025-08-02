@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,7 +101,6 @@
 <body>
   <h1>Model Tools Suite ⚙️</h1>
 
-  <!-- Net Sales Calculator -->
   <div class="tool-block">
     <h2>Net Sales Calculator</h2>
     <label for="input">Paste Transaction Logs:</label>
@@ -122,7 +122,6 @@
     </div>
   </div>
 
-  <!-- Shift Target Scheduler -->
   <details>
     <summary>📋 Show Shift Target Scheduler</summary>
     <label for="modelBlock">Paste Model Block (names only):</label>
@@ -140,7 +139,6 @@
     <div id="valueOnly" onclick="selectAllText('valueOnly')"></div>
   </details>
 
-  <!-- Tips + Messages Totalizer -->
   <div class="tool-block">
     <h2>Tips + Messages Totalizer</h2>
     <label for="rawData">Paste Tips + Messages Raw Data:</label>
@@ -149,7 +147,6 @@
     <div id="combinedResults" onclick="selectAllText('combinedResults')"></div>
   </div>
 
-  <!-- Time-Filtered Net Calculator -->
   <div class="tool-block">
     <h2>Net Calculator (Filtered by Time)</h2>
 
@@ -245,16 +242,12 @@
 
     function processData() {
       const raw = document.getElementById('rawData').value.trim();
-      const lines = raw.split('\n')
-                       .map(l => l.trim())
-                       .filter(l => l);
-
+      const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
       const results = {};
       let i = 0;
       while (i < lines.length) {
         const name = lines[i];
         let tipLine = lines[i+1], msgLine = lines[i+2];
-
         if (tipLine === 'A' || tipLine === 'B') {
           tipLine = lines[i+2];
           msgLine = lines[i+3];
@@ -262,7 +255,6 @@
         } else {
           i += 3;
         }
-
         const tip = parseFloat(tipLine.replace(/[^\d.]/g, '')) || 0;
         const msg = parseFloat(msgLine.replace(/[^\d.]/g, '')) || 0;
         results[name] = (results[name] || 0) + tip + msg;
@@ -309,7 +301,9 @@
       populateSelect("endMinute", 0, 59, true);
     }
 
-    populateDropdowns();
+    document.addEventListener('DOMContentLoaded', () => {
+      populateDropdowns();
+    });
 
     function getDate(prefix) {
       const month = parseInt(document.getElementById(prefix + "Month").value);
@@ -318,10 +312,8 @@
       let hour = parseInt(document.getElementById(prefix + "Hour").value);
       const minute = parseInt(document.getElementById(prefix + "Minute").value);
       const ampm = document.getElementById(prefix + "AMPM").value;
-
       if (ampm === "PM" && hour !== 12) hour += 12;
       if (ampm === "AM" && hour === 12) hour = 0;
-
       return new Date(year, month, day, hour, minute);
     }
 
@@ -340,36 +332,28 @@
       const log = document.getElementById("logInput").value.trim().split("\n");
       const start = getDate("start");
       const end = getDate("end");
-
       let totalNet = 0;
-
       for (let i = 0; i < log.length; i++) {
         const date = parseDate(log[i]);
         if (date && date >= start && date <= end) {
           const grossLine = log[i + 1];
           const netLine = log[i + 3];
-
           const grossMatch = grossLine?.match(/\$(\d+\.\d{2})/);
           const netMatch = netLine?.match(/\$(\d+\.\d{2})$/);
-
           if (grossMatch && netMatch) {
             const gross = parseFloat(grossMatch[1]);
             const net = parseFloat(netMatch[1]);
-
             const endsIn99 = gross.toFixed(2).endsWith(".99");
             const under100 = gross < 100;
-
             if (!(endsIn99 && under100)) {
               totalNet += net;
             }
           }
         }
       }
-
       const resultDiv = document.getElementById("timeFilteredResult");
       resultDiv.textContent = `${totalNet.toFixed(2)}`;
     }
   </script>
 </body>
 </html>
-
