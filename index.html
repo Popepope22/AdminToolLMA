@@ -327,22 +327,36 @@
     }
 
     function calculateNetTimeFiltered() {
-      const log = document.getElementById("logInput").value.trim().split("\n");
-      const start = getDate("start");
-      const end = getDate("end");
-      let total = 0;
+  const log = document.getElementById("logInput").value.trim().split("\n");
+  const start = getDate("start");
+  const end = getDate("end");
 
-      for (let i = 0; i < log.length; i++) {
-        const date = parseDate(log[i]);
-        if (date && date >= start && date <= end) {
-          const netLine = log[i + 3];
-          const match = netLine?.match(/\$([\d.]+)/);
-          if (match) total += parseFloat(match[1]);
-        }
+  let totalNet = 0;
+
+  for (let i = 0; i < log.length; i++) {
+    const date = parseDate(log[i]);
+    if (date && date >= start && date <= end) {
+      const grossLine = log[i + 1];
+      const netLine = log[i + 3];
+
+      const grossMatch = grossLine?.match(/\$(\d+\.\d+)/);
+      const netMatch = netLine?.match(/\$(\d+\.\d{2})$/);
+
+      if (grossMatch && netMatch) {
+        const grossStr = grossMatch[1];
+        const net = parseFloat(netMatch[1]);
+
+        const [, decimal] = grossStr.split(".");
+        const is99 = decimal.startsWith("99");
+
+        if (!is99) totalNet += net;
       }
-
-      document.getElementById("timeFilteredResult").innerText = `Total Net: $${total.toFixed(2)}`;
     }
+  }
+
+  document.getElementById("timeFilteredResult").innerText = totalNet.toFixed(2);
+}
   </script>
 </body>
 </html>
+
