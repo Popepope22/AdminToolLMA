@@ -63,7 +63,7 @@
       margin-top: 0.5rem;
       cursor: pointer; width: 100%;
     }
-    #output, #valueOnly, #combinedResults, #timeFilteredResult {
+    #output, #valueOnly, #combinedResults {
       background: var(--card-bg);
       padding: 1rem;
       border: 1px solid var(--border-color);
@@ -72,6 +72,17 @@
       cursor: pointer;
       margin-top: 1rem;
       box-shadow: var(--shadow);
+    }
+    #timeFilteredResult {
+      padding: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      font-family: monospace;
+      font-size: 1rem;
+      margin-top: 1rem;
+      box-shadow: var(--shadow);
+      cursor: pointer;
     }
     details {
       background: var(--card-bg);
@@ -164,7 +175,7 @@
 
     <textarea id="logInput" placeholder="Paste log here..."></textarea>
     <button onclick="calculateNetTimeFiltered()">Calculate Net</button>
-    <div id="timeFilteredResult">Total Net: $0.00</div>
+    <div id="timeFilteredResult" onclick="selectAllText('timeFilteredResult')">Total Net: $0.00</div>
   </div>
 
   <script>
@@ -265,7 +276,6 @@
       document.getElementById('combinedResults').textContent = output;
     }
 
-    // Time-Filtered Net Calculator Logic
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     function populateSelect(id, start, end, pad) {
@@ -327,41 +337,38 @@
     }
 
     function calculateNetTimeFiltered() {
-  const log = document.getElementById("logInput").value.trim().split("\n");
-  const start = getDate("start");
-  const end = getDate("end");
+      const log = document.getElementById("logInput").value.trim().split("\n");
+      const start = getDate("start");
+      const end = getDate("end");
 
-  let totalNet = 0;
+      let totalNet = 0;
 
-  for (let i = 0; i < log.length; i++) {
-    const date = parseDate(log[i]);
-    if (date && date >= start && date <= end) {
-      const grossLine = log[i + 1];
-      const netLine = log[i + 3];
+      for (let i = 0; i < log.length; i++) {
+        const date = parseDate(log[i]);
+        if (date && date >= start && date <= end) {
+          const grossLine = log[i + 1];
+          const netLine = log[i + 3];
 
-      const grossMatch = grossLine?.match(/\$(\d+\.\d{2})/);
-      const netMatch = netLine?.match(/\$(\d+\.\d{2})$/);
+          const grossMatch = grossLine?.match(/\$(\d+\.\d{2})/);
+          const netMatch = netLine?.match(/\$(\d+\.\d{2})$/);
 
-      if (grossMatch && netMatch) {
-        const gross = parseFloat(grossMatch[1]);
-        const net = parseFloat(netMatch[1]);
+          if (grossMatch && netMatch) {
+            const gross = parseFloat(grossMatch[1]);
+            const net = parseFloat(netMatch[1]);
 
-        // Exclude only if ends in .99 AND less than $100
-        const endsIn99 = gross.toFixed(2).endsWith(".99");
-        const under100 = gross < 100;
+            const endsIn99 = gross.toFixed(2).endsWith(".99");
+            const under100 = gross < 100;
 
-        if (!(endsIn99 && under100)) {
-          totalNet += net;
+            if (!(endsIn99 && under100)) {
+              totalNet += net;
+            }
+          }
         }
       }
-    }
-  }
 
-  document.getElementById("timeFilteredResult").value = totalNet.toFixed(2);
-}
-}
+      const resultDiv = document.getElementById("timeFilteredResult");
+      resultDiv.textContent = `Total Net: $${totalNet.toFixed(2)}`;
+    }
   </script>
 </body>
 </html>
-
-
