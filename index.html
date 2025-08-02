@@ -339,24 +339,29 @@
       const grossLine = log[i + 1];
       const netLine = log[i + 3];
 
-      const grossMatch = grossLine?.match(/\$(\d+\.\d+)/);
+      const grossMatch = grossLine?.match(/\$(\d+\.\d{2})/);
       const netMatch = netLine?.match(/\$(\d+\.\d{2})$/);
 
       if (grossMatch && netMatch) {
-        const grossStr = grossMatch[1];
+        const gross = parseFloat(grossMatch[1]);
         const net = parseFloat(netMatch[1]);
 
-        const [, decimal] = grossStr.split(".");
-        const is99 = decimal.startsWith("99");
+        // Exclude only if ends in .99 AND less than $100
+        const endsIn99 = gross.toFixed(2).endsWith(".99");
+        const under100 = gross < 100;
 
-        if (!is99) totalNet += net;
+        if (!(endsIn99 && under100)) {
+          totalNet += net;
+        }
       }
     }
   }
 
-  document.getElementById("timeFilteredResult").innerText = totalNet.toFixed(2);
+  document.getElementById("timeFilteredResult").value = totalNet.toFixed(2);
+}
 }
   </script>
 </body>
 </html>
+
 
