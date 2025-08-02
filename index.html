@@ -2,157 +2,328 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Model Tools Suite</title>
   <style>
     :root {
       --primary: #4a90e2;
-      --secondary: #f4f7fa;
+      --secondary: #f4f7fb;
+      --text-color: #1e1e1e;
+      --card-bg: #ffffff;
+      --border-color: #d1d5db;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius: 12px;
     }
-
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background-color: var(--secondary);
-      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--secondary);
+      color: var(--text-color);
       padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
     }
-
-    textarea {
-      width: 100%;
-      height: 200px;
-      padding: 1rem;
-      font-size: 1rem;
-      margin-bottom: 1rem;
+    h1, h2 { text-align: center; color: var(--primary); }
+    textarea, select, button {
+      width: 100%; padding: 0.75rem; font-size: 1rem;
+      margin-top: 1rem; border-radius: var(--radius);
+      border: 1px solid var(--border-color);
     }
-
+    textarea { min-height: 120px; resize: vertical; }
     button {
-      padding: 0.5rem 1rem;
       background-color: var(--primary);
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      margin: 0.5rem 0.5rem 0.5rem 0;
+      color: white; border: none;
+      margin-top: 1rem; cursor: pointer;
+      transition: background-color 0.3s ease;
     }
-
-    button:hover {
-      background-color: #357ab8;
+    button:hover { background-color: #357abd; }
+    .tool-block {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
     }
-
-    .output {
-      background: white;
-      padding: 0.75rem;
+    .flex-row {
+      display: flex; flex-wrap: wrap; gap: 1rem;
+    }
+    .flex-col { flex: 1; min-width: 250px; }
+    .output-block { display: flex; flex-direction: column; }
+    input.output {
+      padding: 1rem; border-radius: var(--radius);
+      font-family: monospace; font-size: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       margin-top: 0.5rem;
-      border-radius: 5px;
-      font-weight: bold;
+      cursor: pointer; width: 100%;
+    }
+    #output, #valueOnly, #combinedResults, #timeFilteredResult {
+      background: var(--card-bg);
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      white-space: pre-wrap;
       cursor: pointer;
-    }
-
-    .output:active {
-      background-color: #e1f0ff;
-    }
-
-    label {
-      display: block;
       margin-top: 1rem;
-      margin-bottom: 0.5rem;
+      box-shadow: var(--shadow);
     }
-
-    input[type="date"] {
-      padding: 0.4rem;
-      margin-bottom: 1rem;
+    details {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1rem;
+    }
+    summary {
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>Model Tools Suite</h1>
-  <textarea id="logInput" placeholder="Paste your raw data here..."></textarea>
+  <h1>Model Tools Suite ⚙️</h1>
 
-  <button onclick="calculateNet()">Calculate Net</button>
-  <div id="netResult" class="output" onclick="selectAndCopy(this)"></div>
+  <!-- Net Sales Calculator -->
+  <div class="tool-block">
+    <h2>Net Sales Calculator</h2>
+    <label for="input">Paste Transaction Logs:</label>
+    <textarea id="input" rows="10" placeholder="Paste your transactions here..."></textarea>
+    <button onclick="calculateNet()">Calculate Net</button>
+    <div class="flex-row">
+      <div class="output-block flex-col">
+        <label>Exclude All .99</label>
+        <input readonly id="resultExcludeAll99" class="output" onclick="this.select()" />
+      </div>
+      <div class="output-block flex-col">
+        <label>Only Gross Ending in .08</label>
+        <input readonly id="resultOnly08" class="output" onclick="this.select()" />
+      </div>
+      <div class="output-block flex-col">
+        <label>Include All – Exclude .99 with 2 Digits Before</label>
+        <input readonly id="resultExclude99Under100" class="output" onclick="this.select()" />
+      </div>
+    </div>
+  </div>
 
-  <button onclick="calculateNetExcluding99()">Net Excl. .99</button>
-  <div id="netResultExcl99" class="output" onclick="selectAndCopy(this)"></div>
+  <!-- Shift Target Scheduler -->
+  <details>
+    <summary>📋 Show Shift Target Scheduler</summary>
+    <label for="modelBlock">Paste Model Block (names only):</label>
+    <textarea id="modelBlock" placeholder="e.g.,\nAli\nAmber\nAshton"></textarea>
 
-  <button onclick="calculateNetExclude99Below100()">Net Excl. .99 Under 100</button>
-  <div id="netResultExcl99Under100" class="output" onclick="selectAndCopy(this)"></div>
+    <label for="valueList">Paste Value List (any format with $Value):</label>
+    <textarea id="valueList" placeholder="e.g.,\nAli @ali $1,200.00\nAmber - $1,000.50\nAshton - $950.75"></textarea>
 
-  <label for="startDate">Start Date:</label>
-  <input type="date" id="startDate" />
-  <label for="endDate">End Date:</label>
-  <input type="date" id="endDate" />
+    <button onclick="matchTargets()">Match Targets</button>
 
-  <button onclick="calculateNetTimeFiltered()">Calculate Time Filtered Net</button>
-  <div id="timeFilteredResult" class="output" onclick="selectAndCopy(this)"></div>
+    <h2>Matched Output</h2>
+    <div id="output" onclick="selectAllText('output')"></div>
+
+    <h2>Value Only List</h2>
+    <div id="valueOnly" onclick="selectAllText('valueOnly')"></div>
+  </details>
+
+  <!-- Tips + Messages Totalizer -->
+  <div class="tool-block">
+    <h2>Tips + Messages Totalizer</h2>
+    <label for="rawData">Paste Tips + Messages Raw Data:</label>
+    <textarea id="rawData" placeholder="Name, possible A/B, Tip line, Message line…"></textarea>
+    <button onclick="processData()">Process Totals</button>
+    <div id="combinedResults" onclick="selectAllText('combinedResults')"></div>
+  </div>
+
+  <!-- Time-Filtered Net Calculator -->
+  <div class="tool-block">
+    <h2>Net Calculator (Filtered by Time)</h2>
+
+    <div>
+      <strong>Start Time:</strong>
+      <select id="startMonth"></select>
+      <select id="startDay"></select>
+      <select id="startYear"></select>
+      <select id="startHour"></select> :
+      <select id="startMinute"></select>
+      <select id="startAMPM"><option>AM</option><option>PM</option></select>
+    </div>
+
+    <div>
+      <strong>End Time:</strong>
+      <select id="endMonth"></select>
+      <select id="endDay"></select>
+      <select id="endYear"></select>
+      <select id="endHour"></select> :
+      <select id="endMinute"></select>
+      <select id="endAMPM"><option>AM</option><option>PM</option></select>
+    </div>
+
+    <textarea id="logInput" placeholder="Paste log here..."></textarea>
+    <button onclick="calculateNetTimeFiltered()">Calculate Net</button>
+    <div id="timeFilteredResult">Total Net: $0.00</div>
+  </div>
 
   <script>
-    function getDate(id) {
-      const date = document.getElementById(id + "Date").value;
-      return date ? new Date(date) : null;
-    }
-
-    function parseDate(line) {
-      const match = line.match(/\d{4}-\d{2}-\d{2}/);
-      return match ? new Date(match[0]) : null;
-    }
-
-    function selectAndCopy(element) {
+    function selectAllText(id) {
+      const el = document.getElementById(id);
       const range = document.createRange();
-      range.selectNodeContents(element);
+      range.selectNodeContents(el);
       const sel = window.getSelection();
       sel.removeAllRanges();
       sel.addRange(range);
-      document.execCommand("copy");
     }
 
     function calculateNet() {
-      const log = document.getElementById("logInput").value.trim().split("\n");
-      let total = 0;
-      for (let i = 0; i < log.length; i++) {
-        if (log[i].includes("Net")) {
-          const match = log[i]?.match(/\$([\d.]+)/);
-          if (match) total += parseFloat(match[1]);
-        }
-      }
-      document.getElementById("netResult").innerText = `$${total.toFixed(2)}`;
-    }
+      const text = document.getElementById("input").value;
+      const lines = text.split(/\r?\n/);
+      let totalExcludeAll99 = 0, totalOnly08 = 0, totalExclude99Under100 = 0;
 
-    function calculateNetExcluding99() {
-      const log = document.getElementById("logInput").value.trim().split("\n");
-      let total = 0;
-      for (let i = 0; i < log.length; i++) {
-        if (log[i].includes("Net")) {
-          const match = log[i]?.match(/\$([\d.]+)/);
-          if (match) {
-            const net = parseFloat(match[1]);
-            const netStr = net.toFixed(2);
-            if (!netStr.endsWith(".99")) {
-              total += net;
-            }
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].includes("$") && i >= 2) {
+          const grossMatch = lines[i - 2].match(/\$(\d+\.\d+)/);
+          const netMatch = lines[i].match(/\$(\d+\.\d{2})$/);
+          if (grossMatch && netMatch) {
+            const grossStr = grossMatch[1], net = parseFloat(netMatch[1]);
+            const [whole, decimal] = grossStr.split(".");
+            const is99 = decimal.startsWith("99");
+            const is08 = decimal === "08";
+            const is99Under100 = decimal === "99" && parseInt(whole) < 100;
+            if (!is99) totalExcludeAll99 += net;
+            if (is08) totalOnly08 += net;
+            if (!is99Under100) totalExclude99Under100 += net;
           }
         }
       }
-      document.getElementById("netResultExcl99").innerText = `$${total.toFixed(2)}`;
+      document.getElementById("resultExcludeAll99").value = totalExcludeAll99.toFixed(2);
+      document.getElementById("resultOnly08").value      = totalOnly08.toFixed(2);
+      document.getElementById("resultExclude99Under100").value = totalExclude99Under100.toFixed(2);
     }
 
-    function calculateNetExclude99Below100() {
-      const log = document.getElementById("logInput").value.trim().split("\n");
-      let total = 0;
-      for (let i = 0; i < log.length; i++) {
-        if (log[i].includes("Net")) {
-          const match = log[i]?.match(/\$([\d.]+)/);
-          if (match) {
-            const net = parseFloat(match[1]);
-            const netStr = net.toFixed(2);
-            const endsIn99 = netStr.endsWith(".99");
-            const under100 = net < 100;
-
-            if (endsIn99 && under100) continue;
-            total += net;
-          }
+    function extractNameValuePairs(lines) {
+      const result = {};
+      lines.forEach(line => {
+        const idx = line.indexOf('$');
+        if (idx !== -1) {
+          const namePart = line.substring(0, idx).replace(/[-@].*$/, '').trim().toLowerCase();
+          const valuePart = line.substring(idx).trim();
+          result[namePart] = valuePart;
         }
+      });
+      return result;
+    }
+
+    function matchTargets() {
+      const modelBlock = document.getElementById("modelBlock")
+                            .value.split(/\n+/).map(m => m.trim().toLowerCase());
+      const valueLines = document.getElementById("valueList").value.split(/\n+/);
+      const valueMap   = extractNameValuePairs(valueLines);
+
+      const matched = [], valuesOnly = [];
+      modelBlock.forEach(name => {
+        const val = valueMap[name] || "Not Found";
+        matched.push(`${name} - ${val}`);
+        valuesOnly.push(val);
+      });
+      document.getElementById("output").textContent    = matched.join("\n");
+      document.getElementById("valueOnly").textContent = valuesOnly.join("\n");
+    }
+
+    function processData() {
+      const raw = document.getElementById('rawData').value.trim();
+      const lines = raw.split('\n')
+                       .map(l => l.trim())
+                       .filter(l => l);
+
+      const results = {};
+      let i = 0;
+      while (i < lines.length) {
+        const name = lines[i];
+        let tipLine = lines[i+1], msgLine = lines[i+2];
+
+        if (tipLine === 'A' || tipLine === 'B') {
+          tipLine = lines[i+2];
+          msgLine = lines[i+3];
+          i += 4;
+        } else {
+          i += 3;
+        }
+
+        const tip = parseFloat(tipLine.replace(/[^\d.]/g, '')) || 0;
+        const msg = parseFloat(msgLine.replace(/[^\d.]/g, '')) || 0;
+        results[name] = (results[name] || 0) + tip + msg;
       }
-      document.getElementById("netResultExcl99Under100").innerText = `$${total.toFixed(2)}`;
+
+      const output = Object.entries(results)
+        .sort((a,b) => a[0].localeCompare(b[0]))
+        .map(([n,v]) => `${n} - $${v.toFixed(2)}`)
+        .join('\n');
+
+      document.getElementById('combinedResults').textContent = output;
+    }
+
+    // Time-Filtered Net Calculator Logic
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    function populateSelect(id, start, end, pad) {
+      const sel = document.getElementById(id);
+      for (let i = start; i <= end; i++) {
+        let val = pad ? String(i).padStart(2, '0') : i;
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.text = val;
+        sel.appendChild(opt);
+      }
+    }
+
+    function populateDropdowns() {
+      months.forEach((m, i) => {
+        ['startMonth', 'endMonth'].forEach(id => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.text = m;
+          document.getElementById(id).appendChild(opt);
+        });
+      });
+
+      populateSelect("startDay", 1, 31, true);
+      populateSelect("endDay", 1, 31, true);
+      populateSelect("startYear", 2020, 2030);
+      populateSelect("endYear", 2020, 2030);
+      populateSelect("startHour", 1, 12, true);
+      populateSelect("endHour", 1, 12, true);
+      populateSelect("startMinute", 0, 59, true);
+      populateSelect("endMinute", 0, 59, true);
+    }
+
+    populateDropdowns();
+
+    function getDate(prefix) {
+      const month = parseInt(document.getElementById(prefix + "Month").value);
+      const day = parseInt(document.getElementById(prefix + "Day").value);
+      const year = parseInt(document.getElementById(prefix + "Year").value);
+      let hour = parseInt(document.getElementById(prefix + "Hour").value);
+      const minute = parseInt(document.getElementById(prefix + "Minute").value);
+      const ampm = document.getElementById(prefix + "AMPM").value;
+
+      if (ampm === "PM" && hour !== 12) hour += 12;
+      if (ampm === "AM" && hour === 12) hour = 0;
+
+      return new Date(year, month, day, hour, minute);
+    }
+
+    function parseDate(line) {
+      const match = line.match(/([A-Za-z]{3,}) (\d{1,2}),\s*(\d{4}),\s*(\d{1,2}):(\d{2})\s*(am|pm)/i);
+      if (!match) return null;
+      const [ , monStr, day, year, hourRaw, minute, ampm ] = match;
+      const month = months.findIndex(m => m.toLowerCase().startsWith(monStr.toLowerCase()));
+      let hour = parseInt(hourRaw);
+      if (ampm.toLowerCase() === 'pm' && hour !== 12) hour += 12;
+      if (ampm.toLowerCase() === 'am' && hour === 12) hour = 0;
+      return new Date(parseInt(year), month, parseInt(day), hour, parseInt(minute));
     }
 
     function calculateNetTimeFiltered() {
@@ -163,22 +334,14 @@
 
       for (let i = 0; i < log.length; i++) {
         const date = parseDate(log[i]);
-        if (date && (!start || date >= start) && (!end || date <= end)) {
+        if (date && date >= start && date <= end) {
           const netLine = log[i + 3];
           const match = netLine?.match(/\$([\d.]+)/);
-          if (match) {
-            const net = parseFloat(match[1]);
-            const netStr = net.toFixed(2);
-            const endsIn99 = netStr.endsWith(".99");
-            const under100 = net < 100;
-
-            if (endsIn99 && under100) continue;
-            total += net;
-          }
+          if (match) total += parseFloat(match[1]);
         }
       }
 
-      document.getElementById("timeFilteredResult").innerText = `$${total.toFixed(2)}`;
+      document.getElementById("timeFilteredResult").innerText = `Total Net: $${total.toFixed(2)}`;
     }
   </script>
 </body>
