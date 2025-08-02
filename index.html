@@ -30,7 +30,7 @@
       gap: 2rem;
     }
     h1, h2 { text-align: center; color: var(--primary); }
-    textarea, select, button {
+    textarea, select, input[type="datetime-local"], button {
       width: 100%; padding: 0.75rem; font-size: 1rem;
       margin-top: 1rem; border-radius: var(--radius);
       border: 1px solid var(--border-color);
@@ -64,7 +64,7 @@
       margin-top: 0.5rem;
       cursor: pointer; width: 100%;
     }
-    #output, #valueOnly, #combinedResults {
+    #output, #valueOnly, #combinedResults, #timeFilteredResult {
       background: var(--card-bg);
       padding: 1rem;
       border: 1px solid var(--border-color);
@@ -73,17 +73,8 @@
       cursor: pointer;
       margin-top: 1rem;
       box-shadow: var(--shadow);
-    }
-    #timeFilteredResult {
-      padding: 1rem;
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
       font-family: monospace;
       font-size: 1rem;
-      margin-top: 1rem;
-      box-shadow: var(--shadow);
-      cursor: pointer;
     }
     details {
       background: var(--card-bg);
@@ -149,26 +140,11 @@
 
   <div class="tool-block">
     <h2>Net Calculator (Filtered by Time)</h2>
+    <label for="startDateTime"><strong>Start Time:</strong></label>
+    <input type="datetime-local" id="startDateTime" />
 
-    <div>
-      <strong>Start Time:</strong>
-      <select id="startMonth"></select>
-      <select id="startDay"></select>
-      <select id="startYear"></select>
-      <select id="startHour"></select> :
-      <select id="startMinute"></select>
-      <select id="startAMPM"><option>AM</option><option>PM</option></select>
-    </div>
-
-    <div>
-      <strong>End Time:</strong>
-      <select id="endMonth"></select>
-      <select id="endDay"></select>
-      <select id="endYear"></select>
-      <select id="endHour"></select> :
-      <select id="endMinute"></select>
-      <select id="endAMPM"><option>AM</option><option>PM</option></select>
-    </div>
+    <label for="endDateTime"><strong>End Time:</strong></label>
+    <input type="datetime-local" id="endDateTime" />
 
     <textarea id="logInput" placeholder="Paste log here..."></textarea>
     <button onclick="calculateNetTimeFiltered()">Calculate Net</button>
@@ -268,59 +244,16 @@
       document.getElementById('combinedResults').textContent = output;
     }
 
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-    function populateSelect(id, start, end, pad) {
-      const sel = document.getElementById(id);
-      for (let i = start; i <= end; i++) {
-        let val = pad ? String(i).padStart(2, '0') : i;
-        let opt = document.createElement('option');
-        opt.value = i;
-        opt.text = val;
-        sel.appendChild(opt);
-      }
-    }
-
-    function populateDropdowns() {
-      months.forEach((m, i) => {
-        ['startMonth', 'endMonth'].forEach(id => {
-          const opt = document.createElement("option");
-          opt.value = i;
-          opt.text = m;
-          document.getElementById(id).appendChild(opt);
-        });
-      });
-
-      populateSelect("startDay", 1, 31, true);
-      populateSelect("endDay", 1, 31, true);
-      populateSelect("startYear", 2020, 2030);
-      populateSelect("endYear", 2020, 2030);
-      populateSelect("startHour", 1, 12, true);
-      populateSelect("endHour", 1, 12, true);
-      populateSelect("startMinute", 0, 59, true);
-      populateSelect("endMinute", 0, 59, true);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      populateDropdowns();
-    });
-
     function getDate(prefix) {
-      const month = parseInt(document.getElementById(prefix + "Month").value);
-      const day = parseInt(document.getElementById(prefix + "Day").value);
-      const year = parseInt(document.getElementById(prefix + "Year").value);
-      let hour = parseInt(document.getElementById(prefix + "Hour").value);
-      const minute = parseInt(document.getElementById(prefix + "Minute").value);
-      const ampm = document.getElementById(prefix + "AMPM").value;
-      if (ampm === "PM" && hour !== 12) hour += 12;
-      if (ampm === "AM" && hour === 12) hour = 0;
-      return new Date(year, month, day, hour, minute);
+      const input = document.getElementById(prefix + "DateTime");
+      return new Date(input.value);
     }
 
     function parseDate(line) {
       const match = line.match(/([A-Za-z]{3,}) (\d{1,2}),\s*(\d{4}),\s*(\d{1,2}):(\d{2})\s*(am|pm)/i);
       if (!match) return null;
       const [ , monStr, day, year, hourRaw, minute, ampm ] = match;
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       const month = months.findIndex(m => m.toLowerCase().startsWith(monStr.toLowerCase()));
       let hour = parseInt(hourRaw);
       if (ampm.toLowerCase() === 'pm' && hour !== 12) hour += 12;
